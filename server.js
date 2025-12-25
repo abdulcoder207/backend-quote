@@ -107,6 +107,10 @@ function auth(req, res, next) {
 //     })
 // })
 
+app.get("/", (req, res) =>{
+    return res.json("masuk ke vercel")
+})
+
 app.get("/quotes", async (req, res) => {
     const { data, error } = await supabase
         .from("quotes")
