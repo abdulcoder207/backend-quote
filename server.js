@@ -31,6 +31,10 @@ app.post("/register", async (req, res) => {
         return res.status(400).json(error);
     }
 
+    if (!username || !email || !password){
+        return res.status(400).json({message: "Data tidak lengkap"})
+    }
+
     const token = jwt.sign(
         { id: data.id, username: data.username },
         SECRET,
@@ -64,6 +68,10 @@ app.post("/login", async (req, res) => {
 
     if (!user || user.password !== password) {
         return res.status(401).json({ message: "login gagal" })
+    }
+
+    if (!email || !password) {
+        return res.status(400).json({ message: "Data tidak lengkap" })
     }
 
     console.log("login body:", req.body)
@@ -107,7 +115,7 @@ function auth(req, res, next) {
 //     })
 // })
 
-app.get("/", (req, res) =>{
+app.get("/", (req, res) => {
     return res.json("masuk ke vercel")
 })
 
@@ -128,6 +136,18 @@ app.get("/quotes", async (req, res) => {
 app.post("/quotes", auth, async (req, res) => {
     const { content } = req.body;
 
+    if (!content || content.trim() === "") {
+        return res.status(400).json({ message: "kolom tidak boleh kosong" })
+    }
+
+    if (content.length < 3){
+        return res.status(400).json({message: "quote terlalu pendek"})
+    }
+
+    if (content.length > 280){
+        return res.status(400).json({message: "quote maksimal 280 karakter"})
+    }
+    
     const { error } = await supabase
         .from("quotes")
         .insert([{
@@ -181,7 +201,7 @@ app.get("/my-quotes", auth, async (req, res) => {
         .from("quotes")
         .select("id, content, created_at")
         .eq("user_id", req.user.id)
-        .order("created_at", {ascending: false})
+        .order("created_at", { ascending: false })
 
     if (error) {
         return res.status(500).json({ message: error.message });
